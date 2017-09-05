@@ -35,8 +35,9 @@ Then visit `http://localhost:5000` in your browser.
 ## Overview
 
 The format of topic_ids for input just likes `list` or `range` in Python, as below:
+
 |Input of text | Python List |
 |------|------|
 |"0,50,100,150,200,250"|list(0,50,100,150,200,250)|
 |"1:10"|range(1,11)|
-|"1:100:10"|range(1, 101, 10)|
+|"0:99:10"|range(0, 100, 10)|
