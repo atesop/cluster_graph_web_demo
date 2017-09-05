@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cluster Graph Demo based on Echarts and Flask</title>
+    <script src="{{ url_for('static', filename='jquery-3.2.1.js') }}"></script>
+    <script src="{{ url_for('static', filename='echarts.js') }}"></script>
+</head>
+
+<body>
+	<div id="test1">  
+            <input id="input_text1" type="text" value="0,50,100,150,200,250" style="width: 500px;" />  
+            <button id="button_text1">Submit</button>  
+    </div>  
+
+    <!--为ECharts准备一个具备大小（宽高）的Dom-->
+    <div id="main" style="height:500px;border:1px solid #ccc;padding:100px;"></div>
+    
+    <script type="text/javascript">
+	var schema = [
+		{ name: 'vid', index: 0, text: 'vid' },
+		{ name: 'title', index: 0, text: 'title' },
+	];
+    var myChart = echarts.init(document.getElementById('main'));
+
+	
+
+    // 显示标题，图例和空的坐标轴
+    myChart.setOption(
+		   {
+		    title: {
+			text: 'Cluster Graph Demo based on Echarts and Flask '
+		    },
+		    tooltip : {
+				trigger: 'axis',
+				showDelay: 0,
+				axisPointer:{
+					show: true,
+					type: 'cross',
+					lineStyle: {
+						type: 'dashed',
+						width: 1
+					}
+				},
+				formatter: function (obj) {
+					var value = obj.value;
+					return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">'
+						+ schema[0].text + '：' + value[0] + '<br>';
+				},
+				zlevel: 1
+			},
+		    toolbox: {
+				show: true,
+				feature: {
+					mark: { show: true },
+					dataZoom: { show: true },
+					dataView: { show: true, readOnly: false },
+					restore: { show: true },
+					saveAsImage: { show: true}
+				}
+		    },
+		    xAxis : [
+			{
+			    type : 'value',
+			    scale:true
+			}
+		    ],
+		    yAxis : [
+			{
+			    type : 'value',
+			    scale:true
+			}
+		    ],
+			legend: [],
+			series:[]
+	 } );
+    
+
+ $(document).ready(function(){
+  $("#button_text1").on('click', function(){
+	//  myChart.showLoading(); // 显示加载动画
+	 var result1 = $("#input_text1").val();  
+	 var res = result1.split(",");
+	 var postData =  {"labels":res};
+	//  console.log("postData:", JSON.stringify(postData));
+     $.ajax({
+		url:"/labeldata",
+		type:"POST",
+		contentType: "application/json;charset=UTF-8", 
+		data: JSON.stringify(postData),
+		dataType:'json',
+		success:function(jsonData) {
+			if(jsonData) {
+				// myChart.clear(); 
+				data = jsonData.data
+				var seriesList = [];
+				var topicList = [];
+				for (var j = 0; j < data.xy.length; j++) {
+					seriesList.push({
+						name: data.topic[j],
+						type: 'scatter',
+						large: true,
+						symbolSize: 5,
+						data: data.xy[j]
+					});
+					topicList.push(data.topic[j]);
+				}
+				myChart.hideLoading(); 
+				myChart.clear();
+				myChart.setOption(
+					{
+						title: {
+							text: 'Cluster Sample Demo',
+							 textStyle: {
+								fontSize: 24,
+								fontWeight: 'bolder',
+								color: '#333'          // 主标题文字颜色
+							},
+						},
+						tooltip: {
+							trigger: 'item',
+							showDelay: 0,
+							axisPointer:{
+								show: true,
+								type: 'cross',
+								lineStyle: {
+									type: 'dashed',
+									width: 1
+								}
+							},
+							formatter: function (obj) {
+								var value = obj.value;
+								return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">'
+									+ schema[0].text + '：' + value[2] + '</div>'
+									+ schema[1].text + '：' + value[3] + '<br>';
+							},
+							zlevel: 1
+							},
+							toolbox: {
+								show: true,
+								feature: {
+									mark: { show: true },
+									dataZoom: { show: true },
+									dataView : {show: true, readOnly: false},
+									restore : {show: true},
+									saveAsImage : {show: true}
+								}
+							},
+							xAxis: [
+									{
+									type: 'value',
+									scale:true
+									}
+							],
+							yAxis : [
+							{
+								type : 'value',
+								scale:true
+							}
+							],
+							"series":seriesList,
+							"legend":{orient:'horizontal',y:"bottom", "data":topicList}
+					});
+			}
+		}, 
+		error:function(errorMsg) {
+			alert("failed");
+			myChart.hideLoading();
+		}
+	});
+  });
+});   
+</script>  
+
+</body>
+</html>
